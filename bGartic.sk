@@ -1,0 +1,310 @@
+options:
+ prefix: &6[Gartic]
+ permissao-addpalavras: gartic.palavra
+ permissao-iniciar: gartic.iniciar
+ permissao-setlocs: gartic.localizacoes
+ permissao-setlobby: gartic.setlobby
+
+on skript load:
+ send "&abGartic carregado com sucesso!" to console
+
+on join:
+ set {pontos.%player%} to 0
+ set {money.%player%} to 0
+ teleport player to location at {lobby}
+ set {emjogo} to off
+ resetInventory(player)
+
+every second:
+ loop all players:
+  set {_p} to loop-player
+  if {bg.vitorias.%{_p}%} is not set:
+   set {bg.vitorias.%{_p}%} to 0
+  clear fastboard of loop-player
+  set title of fastboard of loop-player to "&6&lGARTIC"
+  set line 1 of loop-player's fastboard to "&1"
+  set line 2 of loop-player's fastboard to " &fVitórias: &a%{bg.vitorias.%{_p}%}%"
+  set line 3 of loop-player's fastboard to " &fCoins: &a%{money.%{_p}%}%"
+  set line 4 of loop-player's fastboard to "&2"
+  if {emjogo} is on:
+   set line 5 of loop-player's fastboard to " &ePartida:"
+   set line 6 of loop-player's fastboard to "  &7• Rodada %{r}%"
+   if {_jogador} contains loop-player:
+    if {palavra} is set:
+     set line 7 of loop-player's fastboard to "  &fPalavra: &7%{palavra}%"
+    else:
+     set line 7 of loop-player's fastboard to "  &fPalavra: &7Nenhuma"
+   set line 8 of loop-player's fastboard to "  &fTempo restante: &a%{tempo}%"
+   set line 9 of loop-player's fastboard to "&4"
+   set line 10 of loop-player's fastboard to " &7www.gartic.com"
+  if {emjogo} is off:
+   set line 5 of loop-player's fastboard to " &7www.gartic.com"
+
+on right click:
+ if colored name of player's tool is "&cPular sua vez":
+  cancel event
+  wait 1 tick
+  teleport player to location at {mlobby}
+  send "&cVocê pulou sua vez!" to player
+  send title "&c&l%player%" with subtitle "&fPulou a vez!" to all players for 5 seconds
+  clear player's inventory
+  set player's gamemode to survival
+  delete {palavra}
+  delete {_jogador}
+ if colored name of player's tool is "&ePreferências":
+  cancel event 
+ if colored name of player's tool is "&eLobbies":
+  cancel event 
+
+on drop:
+ if colored name of item is "&ePreferências":
+  cancel event 
+ if colored name of item is "&eLobbies":
+  cancel event   
+
+on inventory click:
+ if colored name of item is "&ePreferências":
+  cancel event 
+ if colored name of item is "&eLobbies":
+  cancel event 
+
+command /gartic [<text>] [<text>]:
+ trigger:
+  if arg-1 is not set:
+   if player has permission "{@permissao-addpalavras}" or "{@permissao-iniciar}":
+    send ""
+    send " &ebGartic - Ajuda"
+    send ""
+    if player has permission "{@permissao-addpalavras}":
+     send " &3/gartic add <palavra> &8- &7adiciona uma palavra ao banco de dados do jogo"
+     send " &3/gartic lista &8- &7lista todas as palavras adicionadas ao banco de dados do jogo"
+    if player has permission "{@permissao-iniciar}":
+     send " &3/gartic iniciar &8- &7inicia uma partida"
+    if player has permission "{@permissao-setlocs}":
+     send " &3/gartic setlobby &8- &7define a localização do lobby do Gartic"
+     send " &3/gartic setconstrutor &8- &7define a localização para onde irá o construtor"
+     send " &3/gartic setmlobby &8- &7define a localização do lobby onde os jogadores ficarão para ver a construção"
+    send ""
+  if arg-1 is "add":
+   if player has permission "{@permissao-addpalavras}":
+    if arg-2 is set:
+     if arg-2 is not number:
+      add arg-2 to {palavras::*}
+      send "&aPalavra adicionada com sucesso ao banco de dados."
+  if arg-1 is "setlobby":
+   if player has permission "{@permissao-setlobby}":
+    set {lobby} to location of player
+    set {lobbymundo} to player's world
+    send "&aLobby alterado com sucesso para a sua localização atual."
+  if arg-1 is "setmlobby":
+   if player has permission "{@permissao-setlocs}":
+    set {mlobby} to location of player
+    set {mlobbymundo} to player's world
+    send "&aLobby da partida alterado com sucesso para a sua localização atual."
+  if arg-1 is "setconstrutor":
+   if player has permission "{@permissao-setlocs}":
+    set {bloc} to location at player
+    set {blocmundo} to player's world
+    send "&aLocal do construtor alterado com sucesso para a sua localização atual."    
+  if arg-1 is "lista":
+   if player has permission "{@permissao-addpalavras}":
+    delete {sda}
+    delete {nm}
+    wait 1 tick
+    set {sda} to size of {palavras::*}
+    set {nm} to 1
+    if {sda} > 0:
+     send ""
+     send " &aPalavras adicionadas ao banco de dados:"
+     while {nm} is less than or equal to {sda}:
+      send "  &e• &f%{palavras::%{nm}%}%"
+      add 1 to {nm}
+     send ""
+     send " &7Use &f/gartic remover <palavra> &7para remover uma palavra do banco de dados ou use &f/gartic remover * &7para limpá-lo."
+     send ""	
+    if {sda} is 0:
+     send ""
+     send " &7Nenhuma palavra adicionada ao banco de dados. Inicie uma partida para usar as pré-definidas e/ou adicione as palavras que quiser manualmente usando &f/gartic add <palavra>&7." 
+     send ""
+  if arg-1 is "remover":
+   if player has permission "{@permissao-addpalavras}":
+    if arg-2 is not "*":
+     if "%{palavras::*}%" contains arg-2:
+      remove arg-2 from {palavras::*}
+      loop {palavras::*}:
+       if {palavras::%loop-index%} does not contain "<none>":
+        add {palavras::%loop-index%} to {temp-palavras::*}
+      delete {palavras::*}
+      set {palavras::*} to {temp-palavras::*}
+      delete {temp-palavras::*}
+      send ""
+      send " &7A palavra &f%arg-2% &7foi removida do banco de dados."
+      send ""
+      stop
+     if {palavras::*} does not contain arg-2:
+      send ""
+      send " &cEssa palavra não está no banco de dados."
+      send ""
+      stop
+    if arg-2 is not set:
+     send "&cVocê precisa especificar uma palavra para remover."
+     stop
+    if arg-2 is "*":
+     delete {palavras::*}
+     send ""	 
+     send " &aA lista de palavras foi limpa com sucesso."
+     send ""
+
+  if arg-1 is "iniciar":  
+   if {lobby} is not set:
+    send "&eO lobby geral não está setado!"
+   if {mlobby} is not set:
+    send "&eO lobby da partida não está setado!"
+   if {lobby} is set:
+    if {mlobby} is set:  
+     loop all players:
+      set {_jogador} to random element of all players
+     if player has permission "{@permissao-iniciar}":
+      wait 1 second
+      if {palavras::*} does not contain "carro" or "homem" or "astronauta" or "computador" or "pedra" or "jogo" or "impressora" or "carro" or "tijolo" or "arma" or "soguys" or "cenoura" or "vaca" or "minerio":
+       add "carro" to {palavras::*}
+       add "homem" to {palavras::*}
+       add "astronauta" to {palavras::*}
+       add "computador" to {palavras::*}
+       add "pedra" to {palavras::*}
+       add "jogo" to {palavras::*}
+       add "impressora" to {palavras::*}
+       add "carro" to {palavras::*}
+       add "tijolo" to {palavras::*}
+       add "arma" to {palavras::*}
+       add "soguys" to {palavras::*}
+       add "cenoura" to {palavras::*}
+       add "vaca" to {palavras::*}
+       add "minerio" to {palavras::*}
+      set {palavra} to a random element out of {palavras::*}
+      send "&aO jogo vai começar em &73&a..." to all players
+      wait 1 second
+      send "&aO jogo vai começar em &72&a..." to all players
+      wait 1 second
+      send "&aO jogo vai começar em &71&a..." to all players
+      wait 1 second
+      send "&eO jogo começou!" to all players
+      set {emjogo} to on
+      set {r} to 1
+      send "" to all players
+      send " %{_jogador}% &evai desenhar!" to all players
+      send "" to all players
+      send "" to {_jogador}
+      send "&eSua palavra é:" to {_jogador}
+      send "&b%{palavra}%" to {_jogador}
+      send "" to {_jogador}
+      teleport all players to location at {mlobby}
+      wait 1 tick
+      teleport {_jogador} to location at {bloc}
+      make console execute command "gamemode 1 %{_jogador}%"
+      set slot 8 of player's inventory to red bed named "&cPular sua vez"
+      delete {t}
+      delete {tempo}
+      delete {m}
+      delete {s}
+      wait 1 tick
+      set {t} to 180
+      if {t} is 0:
+       if {emjogo} is on:
+        send "&aFIM DE JOGO!"
+        set {emjogo} to off
+      stop 
+
+command /tempoteste:
+ trigger:
+  set {t} to 180
+
+command /vertempo:
+ trigger:
+  send "%{tempo}%"
+
+command /resetn:
+ trigger:
+  delete {n}
+  delete {palavras::*}
+
+command /resettempo:
+ trigger:
+  delete {tempo}
+  delete {_t}
+  delete {minutos}
+  delete {segundos}
+
+every second:
+ if {t} is 0:
+  set {t} to 0   
+  set {m} to 0
+  set {s} to 0
+  if {emjogo} is on:
+   teleport all players to location at {lobby}
+   set gamemode of all players to survival
+   send title "&e&lFIM DE JOGO!" with subtitle "&fO tempo acabou!" to all players for 3 seconds
+   loop all players:
+    resetInventory(loop-player)
+   set {emjogo} to off
+ if {t} > 0:
+  subtract 1 from {t}
+  wait 1 tick
+  set {m} to floor({t} / 60)
+  set {s} to {t} - ({m} * 60)
+  if {s} > 10: 
+   set {tempo} to "%{m}%:%{s}%"
+  if {s} < 10:
+   set {tempo} to "%{m}%:0%{s}%"  
+  if {t} is not set:
+   set {t} to 0  
+   set {m} to 0
+   set {s} to 0
+
+on chat:
+ if {emjogo} is on:
+  if message = "%{palavra}%":
+   if "%{_jogador}%" is not "%player%":
+    cancel event
+    add 1 to {pontos.%player%}
+    send "&aVocê acertou! (%{pontos.%player%}% pontos)"
+    set {emjogo} to off
+    add 1 to {numero}
+    send "" to all players
+    send " &e&lFim da rodada %{numero}%!" to all players
+    send " &e%player% acertou!" to all players
+    send " &eA palavra era %{palavra}%&e!" to all players
+    send "" to all players
+    clear inventory of {_jogador}
+    delete {_jogador}
+    delete {palavra}
+    make console execute command "gamemode 0 @a"
+    teleport all players to location at {mlobby}
+    delete {_t}
+    delete {_tempo}
+    delete {minutos}
+    delete {segundos}
+    add 1 to {r}
+    loop all players:
+     resetInventory(loop-player)
+
+function resetInventory(p: player):
+ clear inventory of {_p}
+ set slot 2 of {_p}'s inventory to comparator named "&ePreferências"
+ set slot 6 of {_p}'s inventory to nether star named "&eLobbies" 
+
+command /flyon:
+ trigger:
+  set player's flight mode to true
+  send title "&a&lFLY ATIVADO!" with subtitle "&7Agora você pode voar." to player for 2 seconds
+
+command /flyoff:
+ trigger:
+  set player's flight mode to false
+  send title "&c&lFLY DESATIVADO!" with subtitle "&7Agora você não pode voar." to player for 2 seconds
+
+command /moneyteste:
+ trigger:
+  add 1000 to {money.%player%} 
+  delete {has.herobrine.%player%}
+  set {unlockedHats.%player%} to 0
