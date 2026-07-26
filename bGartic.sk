@@ -166,7 +166,7 @@ command /gartic [<text>] [<text>]:
       set {_jogador} to random element of all players
      if player has permission "{@permissao-iniciar}":
       wait 1 second
-      if {palavras::*} does not contain "carro" or "homem" or "astronauta" or "computador" or "pedra" or "jogo" or "impressora" or "carro" or "tijolo" or "arma" or "soguys" or "cenoura" or "vaca" or "minerio":
+      if {palavras::*} does not contain "carro" or "homem" or "astronauta" or "computador" or "pedra" or "jogo" or "impressora" or "tijolo" or "arma" or "cenoura" or "vaca" or "minerio":
        add "carro" to {palavras::*}
        add "homem" to {palavras::*}
        add "astronauta" to {palavras::*}
@@ -177,7 +177,6 @@ command /gartic [<text>] [<text>]:
        add "carro" to {palavras::*}
        add "tijolo" to {palavras::*}
        add "arma" to {palavras::*}
-       add "soguys" to {palavras::*}
        add "cenoura" to {palavras::*}
        add "vaca" to {palavras::*}
        add "minerio" to {palavras::*}
