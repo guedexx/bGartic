@@ -31,7 +31,7 @@ Este código é baseado no jogo Gartic, onde alguns jogadores tentam adivinhar o
 
 Versão: 1.8.x a 1.21.x
 
-Commands:
+Comandos:
 - /gartic add <palavra> - adiciona uma palavra à lista de temas
 - /gartic lista - mostra a lista atual de temas
 - /gartic iniciar - inicia o jogo
